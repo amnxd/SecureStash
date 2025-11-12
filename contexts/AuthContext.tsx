@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { 
-  auth, 
-  FirebaseAuthTypes, 
+import {
+  FirebaseAuthTypes,
   signInWithEmailAndPassword as firebaseSignIn,
   createUserWithEmailAndPassword as firebaseSignUp,
   signOut as firebaseSignOut,
-  sendPasswordResetEmail as firebaseSendPasswordReset
+  sendPasswordResetEmail as firebaseSendPasswordReset,
+  onAuthStateChangedListener,
 } from '../config/firebase';
 
 // Define the context type
@@ -32,19 +32,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Set up auth state listener
   useEffect(() => {
-    // Guard the native auth call - if native Firebase isn't initialized yet, auth() will throw.
-    // We catch that and set loading to false so the app can render and the user can see UI.
-    let unsubscribe: (() => void) | undefined;
-    try {
-      unsubscribe = auth().onAuthStateChanged((authUser) => {
-        setUser(authUser);
-        setLoading(false);
-      });
-    } catch (err) {
-      // Likely "No Firebase App ['DEFAULT'] has been created". Log and continue.
-      console.warn('Firebase not initialized (auth listener not attached):', err);
+    // Use the compatibility helper which uses the modular API when available
+    // and falls back to the legacy namespaced listener if needed.
+    const unsubscribe = onAuthStateChangedListener((authUser) => {
+      setUser(authUser);
       setLoading(false);
-    }
+    });
 
     return () => {
       if (typeof unsubscribe === 'function') unsubscribe();

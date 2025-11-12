@@ -1,4 +1,5 @@
-import auth from '@react-native-firebase/auth';
+import auth, * as RNFAuth from '@react-native-firebase/auth';
+import { getApp } from '@react-native-firebase/app';
 import { FirebaseAuthTypes } from '@react-native-firebase/auth';
 
 // NOTE:
@@ -20,12 +21,66 @@ function buildInitError(): Error {
 }
 
 // Export the auth function (guarded usage recommended via helper methods below)
+// Export the raw auth default (namespaced) for callers that still need it
 export { auth };
 export type { FirebaseAuthTypes };
+
+// Compatibility helpers: prefer modular-style RNFirebase functions when available,
+// but fall back to the namespaced `auth()` API to avoid breaking the app.
+
+function tryCallModular(fnName: string, ...args: any[]) {
+  const fn = (RNFAuth as any)[fnName];
+  if (typeof fn !== 'function') return undefined;
+  try {
+    // Try calling the modular function directly
+    return fn(...args);
+  } catch (err) {
+    // Some modular signatures accept (app, ...args) instead of (...args)
+    try {
+      const app = getApp();
+      return fn(app, ...args);
+    } catch (e) {
+      // give up and return undefined so callers can fallback
+      return undefined;
+    }
+  }
+}
+
+/**
+ * Attach an auth state listener in a way that supports both the new modular API
+ * and the legacy namespaced `auth().onAuthStateChanged`.
+ * Returns an unsubscribe function.
+ */
+export const onAuthStateChangedListener = (
+  cb: (user: FirebaseAuthTypes.User | null) => void
+): (() => void) => {
+  // Try modular onAuthStateChanged first
+  const modularResult = tryCallModular('onAuthStateChanged', cb);
+  if (typeof modularResult === 'function') return modularResult;
+
+  // If modular returned something that looks like an unsubscribe, return it
+  if (modularResult && typeof modularResult === 'object' && typeof (modularResult as any).unsubscribe === 'function') {
+    return () => (modularResult as any).unsubscribe();
+  }
+
+  // Fallback to namespaced API which returns an unsubscribe function
+  try {
+    const unsub = auth().onAuthStateChanged(cb);
+    if (typeof unsub === 'function') return unsub;
+  } catch (e) {
+    // If auth() isn't initialized, return a no-op unsubscribe and let caller handle loading
+    console.warn('Fallback auth().onAuthStateChanged failed:', e);
+  }
+
+  return () => {};
+};
 
 // Auth helper functions with clearer errors
 export const getCurrentUser = (): FirebaseAuthTypes.User | null => {
   try {
+    // Prefer modular currentUser if available
+    const modular = tryCallModular('getCurrentUser');
+    if (modular !== undefined) return modular as FirebaseAuthTypes.User | null;
     return auth().currentUser;
   } catch (e) {
     throw buildInitError();
@@ -34,10 +89,13 @@ export const getCurrentUser = (): FirebaseAuthTypes.User | null => {
 
 export const signOut = async (): Promise<void> => {
   try {
+    // Try modular signOut first
+    const modular = tryCallModular('signOut');
+    if (modular !== undefined) return await modular;
+
     return await auth().signOut();
   } catch (error) {
-    // If the root cause is missing initialization, rethrow a clearer error
-    if (String(error).includes("No Firebase App")) throw buildInitError();
+    if (String(error).includes('No Firebase App')) throw buildInitError();
     console.error('Error signing out:', error);
     throw error;
   }
@@ -48,9 +106,13 @@ export const signInWithEmailAndPassword = async (
   password: string
 ): Promise<FirebaseAuthTypes.UserCredential> => {
   try {
+    // Try modular implementation first
+    const modular = tryCallModular('signInWithEmailAndPassword', email, password);
+    if (modular !== undefined) return await modular;
+
     return await auth().signInWithEmailAndPassword(email, password);
   } catch (error) {
-    if (String(error).includes("No Firebase App")) throw buildInitError();
+    if (String(error).includes('No Firebase App')) throw buildInitError();
     console.error('Error signing in:', error);
     throw error;
   }
@@ -61,9 +123,12 @@ export const createUserWithEmailAndPassword = async (
   password: string
 ): Promise<FirebaseAuthTypes.UserCredential> => {
   try {
+    const modular = tryCallModular('createUserWithEmailAndPassword', email, password);
+    if (modular !== undefined) return await modular;
+
     return await auth().createUserWithEmailAndPassword(email, password);
   } catch (error) {
-    if (String(error).includes("No Firebase App")) throw buildInitError();
+    if (String(error).includes('No Firebase App')) throw buildInitError();
     console.error('Error creating user:', error);
     throw error;
   }
@@ -71,9 +136,12 @@ export const createUserWithEmailAndPassword = async (
 
 export const sendPasswordResetEmail = async (email: string): Promise<void> => {
   try {
+    const modular = tryCallModular('sendPasswordResetEmail', email);
+    if (modular !== undefined) return await modular;
+
     return await auth().sendPasswordResetEmail(email);
   } catch (error) {
-    if (String(error).includes("No Firebase App")) throw buildInitError();
+    if (String(error).includes('No Firebase App')) throw buildInitError();
     console.error('Error sending password reset email:', error);
     throw error;
   }
