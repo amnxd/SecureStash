@@ -1,15 +1,195 @@
 # SecureStash
 
+A cross-platform secure file and credential manager. SecureStash stores user files and secrets with support for multiple backend providers (Supabase or Firebase) and provides mobile apps (React Native) plus a web client (Next.js).
+
+Key goals:
+- simple, secure storage for personal files
+- quick uploads/downloads with soft-delete/restore
+- optional server-side indexing (Supabase) or Firestore-backed mode
+
+---
+
+## Features
+
+- User authentication (Firebase Auth or Supabase Auth)
+- File uploads to cloud storage and automatic DB record creation
+- List, preview, soft-delete and restore files
+- Sorting and pagination for large lists
+- Web client (Next.js) and mobile (React Native) clients
+- Test coverage for core service logic and pagination helpers
+
+---
+
+## Quick start
+
+Prerequisites (high level): Node.js, npm or yarn, Android Studio for Android development, Xcode for iOS development (macOS only), JDK for native builds.
+
+1) Clone the repository
+
+    git clone https://github.com/amnxd/SecureStash.git
+    cd SecureStash
+
+2) Install dependencies (root installs scripts and native modules)
+
+    # install node deps
+    npm install
+    # or with yarn
+    # yarn install
+
+3) Configure environment
+
+The app supports Supabase or Firebase backends. Provide the appropriate environment variables or config files before running:
+
+- For Supabase: set SUPABASE_URL and SUPABASE_ANON_KEY (or the project's client env names used in `web-app`/`config` files).
+- For Firebase: place `google-services.json` (Android) and/or `GoogleService-Info.plist` (iOS) in the platform project folders and set any Firebase config in `config/firebase.ts`.
+
+See the `config/` folder for backend wiring.
+
+4) Run the mobile app (React Native)
+
+Android (Windows/Linux/macOS):
+
+    # start Metro
+    npx react-native start
+    # in another terminal
+    npx react-native run-android
+
+iOS (macOS only):
+
+    cd ios
+    pod install
+    cd ..
+    npx react-native start
+    npx react-native run-ios
+
+5) Run the web client (Next.js)
+
+    cd web-app
+    npm install
+    npm run dev
+    # open http://localhost:3000
+
+6) Tests and lint
+
+    # run tests from repo root (if configured)
+    npm test
+    # or run tests in web-app
+    cd web-app
+    npm test
+
+    # linting (project root or web-app as applicable)
+    npm run lint
+
+---
+
+## Folder hierarchy (top-level)
+
+```
+.
+├── App.tsx                 # React Native app entry
+├── android/                # Android native project
+├── ios/                    # iOS native project
+├── components/             # Shared React Native components
+├── config/                 # Backend and runtime configuration helpers
+├── contexts/               # React contexts (Auth, State)
+├── services/               # Business logic and file service helpers
+├── Screens/                # React Native screens
+├── web/                    # Static download page (APK, etc.)
+├── web-app/                # Next.js web client (React + TypeScript)
+│   ├── pages/
+│   ├── components/
+│   └── lib/                # web-only helpers (supabase client, cursor helpers)
+├── functions/              # Cloud Functions (optional)
+├── package.json
+├── tsconfig.json
+└── README.md
+```
+
+Note: The `web-app` directory contains the web client implementation and its own package.json for Next.js-specific dependencies.
+
+---
+
+## Tech stack
+
+- React Native (mobile)
+- Next.js + React (web client)
+- TypeScript
+- Supabase (Postgres + Storage) OR Firebase (Firestore + Storage) as optional backends
+- Jest + React Testing Library for tests
+- ESLint + Prettier for linting and formatting
+
+---
+
+## Mobile app: system requirements & setup
+
+Minimum development environment (recommended):
+
+- Node.js 20.x or newer
+- npm (bundled) or Yarn
+- Java Development Kit (JDK) 17 or newer (for Android builds)
+- Android Studio with Android SDK (recommend Android API 31+ for device/emulator)
+- Xcode 15+ for iOS development (macOS only)
+- CocoaPods (for iOS native dependencies): `sudo gem install cocoapods` or via Bundler
+
+Environment notes and tips:
+
+- On Windows, set ANDROID_HOME to your Android SDK location and add `platform-tools` and `emulator` to PATH.
+- On macOS, install CocoaPods and run `pod install` in `ios/` after changing native dependencies.
+- Enable developer mode on your Android device and connect via USB, or configure an Android Virtual Device (AVD).
+- If you use Supabase, ensure the public client keys are available to the app (or set protected server-side logic accordingly).
+
+---
+
+## Common scripts
+
+From repository root you may find top-level scripts; the web client also has its own scripts under `web-app`.
+
+Examples (web-app):
+
+    cd web-app
+    npm run dev    # start Next.js in development
+    npm run build  # production build
+    npm run start  # start production server
+    npm test
+    npm run lint
+
+Examples (mobile):
+
+    npx react-native start
+    npx react-native run-android
+    npx react-native run-ios
+
+---
+
+## Contributing
+
+1. Fork and create a feature branch
+2. Run tests and lint locally
+3. Open a pull request with a description of your changes
+
+If you plan to contribute to native modules or CI config, describe your environment in the PR.
+
+---
+
+## License
+
+MIT — see the `LICENSE` file.
+
+---
+
+If you want me to add badges, screenshots, or a short DEVELOPING.md with detailed environment setup (for example a step-by-step Android Studio and AVD setup for Windows), tell me which platform(s) to prioritize and I'll add it.
+# SecureStash
+
 A React Native application for secure password and credential management with a modern, user-friendly interface.
 
-## 📱 Features
+##  Features
 
 - **User Authentication**: Signup and Login screens with secure password handling
 - **Modern UI**: Clean, responsive design with green-themed branding
 - **Navigation**: Smooth screen transitions using React Navigation
 - **Cross-Platform**: Works on both Android and iOS
 
-## 🛠️ Prerequisites
+##  Prerequisites
 
 Before you begin, ensure you have the following installed:
 
@@ -21,13 +201,13 @@ Before you begin, ensure you have the following installed:
 - **Java Development Kit (JDK)** - Version 17 or higher
 - **Android SDK** - Install via Android Studio
 
-## 📋 Installation Steps
+##  Installation Steps
 
 ### Step 1: Clone the Repository
 
 ```bash
 # Clone the repository
-git clone https://github.com/Shruti358/SecureStash
+git clone https://github.com/amnxd/SecureStash
 cd SecureStash
 
 # If you're working with a specific branch
@@ -141,225 +321,5 @@ npx react-native run-android
 ```bash
 # This will start Metro and run the app
 npx react-native run-android
-```
-
-### Option 2: Run on iOS (macOS only)
-
-```bash
-# Start the Metro bundler (in a separate terminal)
-npx react-native start
-
-# In another terminal, run the iOS app
-npx react-native run-ios
-```
-
-**Alternative (single command)**:
-```bash
-# This will start Metro and run the app
-npx react-native run-ios
-```
-
-## 🔧 Troubleshooting
-
-### Common Issues and Solutions
-
-#### 1. Metro Bundler Port Already in Use
-```bash
-# Kill the process using port 8081
-npx react-native start --reset-cache
-```
-
-#### 2. Android Build Errors
-```bash
-# Clean the Android build
-cd android
-./gradlew clean
-cd ..
-npx react-native run-android
-```
-
-#### 3. React Navigation ViewManager Errors
-If you see errors like "Can't find ViewManager 'RNSScreenStackHeaderConfig'", ensure you have:
-- Installed `react-native-screens` and `react-native-gesture-handler`
-- Updated `MainActivity.kt` with the `onCreate` override
-- Wrapped your app with `GestureHandlerRootView`
-
-#### 4. Dependencies Not Found
-```bash
-# Clear npm cache and reinstall
-npm cache clean --force
-rm -rf node_modules
-npm install
-```
-
-#### 5. Android Emulator Not Starting
-- Ensure Android Studio is properly configured
-- Check that AVD is created and working
-- Verify environment variables are set correctly
-
-### Build Warnings
-
-You may see CMake warnings about long file paths during the build process. These are common on Windows and don't affect the app's functionality.
-
-## 📁 Project Structure
 
 ```
-SecureStash/
-├── android/                 # Android-specific files
-├── ios/                    # iOS-specific files
-├── Screens/                # Application screens
-│   ├── SignupScreen.tsx    # User registration screen
-│   ├── LoginScreen.tsx     # User authentication screen
-│   └── HomeScreen.tsx      # Main application screen
-├── App.tsx                 # Main application component
-├── package.json            # Dependencies and scripts
-├── tsconfig.json           # TypeScript configuration
-└── README.md              # This file
-```
-
-## 🧪 Available Scripts
-
-```bash
-# Start the Metro bundler
-npm start
-
-# Run on Android
-npm run android
-
-# Run on iOS
-npm run ios
-
-# Run tests
-npm test
-
-# Run linting
-npm run lint
-```
-
-## 🔒 Security Features
-
-- Secure password input fields
-- Navigation state management
-- Safe area handling for different device sizes
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🆘 Support
-
-If you encounter any issues:
-
-1. Check the troubleshooting section above
-2. Ensure all prerequisites are installed correctly
-3. Verify that you're using the correct Node.js version (>=20)
-4. Check that all environment variables are set properly
-
-For additional help, please open an issue in the repository.
-=======
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
-
-# Getting Started
-
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
-
-## Step 1: Start Metro
-
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
-
-To start the Metro dev server, run the following command from the root of your React Native project:
-
-```sh
-# Using npm
-npm start
-
-# OR using Yarn
-yarn start
-```
-
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
-```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
-```
-
-### iOS
-
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
-```
-
-Then, and every time you update your native dependencies, run:
-
-```sh
-bundle exec pod install
-```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
-```
-
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
-
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
-
-## Step 3: Modify your app
-
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
-
