@@ -29,6 +29,8 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ navigation }) => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const searchInputRef = useRef<TextInput>(null);
   const { signOut, user } = useAuth();
+  // Auto-hide user menu after this many milliseconds when opened
+  const USER_MENU_AUTO_HIDE_MS = 700;
 
   // Drawer animation (left-to-right)
   const drawerWidth = useRef(Dimensions.get('window').width * 0.85).current;
@@ -46,6 +48,13 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ navigation }) => {
     const unsub = subscribeUserUsage(user.uid, setUsedBytes);
     return () => unsub();
   }, [user?.uid]);
+
+  // Auto-hide the user menu shortly after opening so it doesn't linger.
+  useEffect(() => {
+    if (!showUserMenu) return;
+    const t = setTimeout(() => setShowUserMenu(false), USER_MENU_AUTO_HIDE_MS);
+    return () => clearTimeout(t);
+  }, [showUserMenu]);
 
   const openDrawer = () => {
     setShowHierarchySheet(true);
@@ -167,13 +176,15 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ navigation }) => {
         </Animated.View>
       </Modal>
 
-      {/* User menu backdrop to close on outside tap */}
-      {showUserMenu && (
+      {/* User menu shown in a modal so outside taps always dismiss it */}
+      <Modal
+        visible={showUserMenu}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowUserMenu(false)}
+      >
         <Pressable style={styles.userBackdrop} onPress={() => setShowUserMenu(false)} />
-      )}
-
-      {showUserMenu && (
-        <View style={styles.userMenu}>
+        <View style={styles.userMenu} pointerEvents="box-none">
           <View style={styles.userInfo}>
             <Icon name="account-circle" size={40} color="#6b7280" />
             <View style={styles.userDetails}>
@@ -190,7 +201,7 @@ const TopNavbar: React.FC<TopNavbarProps> = ({ navigation }) => {
             <Text style={styles.signOutText}>Sign out</Text>
           </TouchableOpacity>
         </View>
-      )}
+      </Modal>
     </View>
   );
 };

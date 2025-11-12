@@ -7,7 +7,7 @@ import StarredScreen from "./StarredScreen";
 import SharedScreen from "./SharedScreen";
 import { pickAndUploadImage, pickAndUploadVideo, pickAndUploadDocument } from "../services/uploadService";
 import { Alert } from "react-native";
-import firestore from '@react-native-firebase/firestore';
+import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc } from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import { getFileUrl, getFileIcon, moveToBin } from '../services/fileService';
 import { verifyFilePassword, setFilePassword, clearFilePasswordWithAccountAuth, setFilePasswordWithAccountAuth } from '../services/fileProtectionService';
@@ -161,12 +161,14 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
       label: currentItem.starred ? 'Remove from starred' : 'Add to starred',
       icon: currentItem.starred ? 'star-off' : 'star',
       onPress: async () => {
-        try {
-          await firestore().collection('files').doc(currentItem.id).update({ starred: !currentItem.starred });
-          setSheetVisible(false);
-        } catch (e: any) {
-          Alert.alert('Star failed', e?.message || String(e));
-        }
+            try {
+              const db = getFirestore();
+              const ref = doc(collection(db, 'files'), currentItem.id);
+              await updateDoc(ref as any, { starred: !currentItem.starred } as any);
+              setSheetVisible(false);
+            } catch (e: any) {
+              Alert.alert('Star failed', e?.message || String(e));
+            }
       },
     },
     {
@@ -284,37 +286,36 @@ export const HomeScreen = ({ navigation }: { navigation: any }) => {
       return;
     }
     setLoading(true);
-    const sub = firestore()
-      .collection('files')
-      .where('owner_id', '==', user.uid)
-      // No orderBy to avoid composite index requirement for now
-      .onSnapshot(
-        (snap) => {
-          const rows: FileRecord[] = [];
-          snap.forEach((doc) => {
-            const d = doc.data() || {} as any;
-            rows.push({
-              id: doc.id,
-              name: d.name || 'Untitled',
-              kind: d.kind,
-              path: d.path,
-              size: d.size,
-              contentType: d.contentType,
-              created_at: d.created_at,
-              updated_at: d.updated_at,
-              starred: d.starred === true,
-              trashed: d.trashed === true,
-              password_protected: d.password_protected === true,
-            });
+  const db = getFirestore();
+  const q = query(collection(db, 'files'), where('owner_id', '==', user.uid));
+    // No orderBy to avoid composite index requirement for now
+    const sub = onSnapshot(q as any,
+      (snap: any) => {
+        const rows: FileRecord[] = [];
+        snap.forEach((docSnap: any) => {
+          const d = docSnap.data() || {} as any;
+          rows.push({
+            id: docSnap.id,
+            name: d.name || 'Untitled',
+            kind: d.kind,
+            path: d.path,
+            size: d.size,
+            contentType: d.contentType,
+            created_at: d.created_at,
+            updated_at: d.updated_at,
+            starred: d.starred === true,
+            trashed: d.trashed === true,
+            password_protected: d.password_protected === true,
           });
-          setFiles(rows.filter(r => !r.trashed));
-          setLoading(false);
-        },
-        (err) => {
-          console.warn('files subscription error', err);
-          setLoading(false);
-        }
-      );
+        });
+        setFiles(rows.filter(r => !r.trashed));
+        setLoading(false);
+      },
+      (err: any) => {
+        console.warn('files subscription error', err);
+        setLoading(false);
+      }
+    );
     return () => sub();
   }, []);
 

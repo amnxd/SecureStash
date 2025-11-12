@@ -38,9 +38,9 @@ export default function UploadsScreen({ navigation }: Props) {
       .orderBy('created_at', 'desc')
       .onSnapshot((snap) => {
         const rows: Row[] = [];
-        snap.forEach((doc) => {
-          const d: any = doc.data() || {};
-          rows.push({ id: doc.id, name: d.name || 'Untitled', kind: d.kind, contentType: d.contentType, size: d.size, created_at: d.created_at, trashed: d.trashed });
+        snap.forEach((docSnap) => {
+          const d: any = docSnap.data() || {};
+          rows.push({ id: docSnap.id, name: d.name || 'Untitled', kind: d.kind, contentType: d.contentType, size: d.size, created_at: d.created_at, trashed: d.trashed });
         });
         setItems(rows);
         setLoading(false);

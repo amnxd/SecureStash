@@ -47,18 +47,20 @@ export default function ActionSheet({ isVisible, title, actions, onClose }: Prop
       onRequestClose={onClose}
     >
       <Pressable style={styles.backdrop} onPress={onClose} />
-      <Animated.View style={[styles.sheet, { transform: [{ translateY }] }]}>
-        {title ? <Text style={styles.title}>{title}</Text> : null}
-        {actions.map((a) => (
-          <TouchableOpacity key={a.key} style={styles.row} onPress={a.onPress}>
-            <Icon name={a.icon} size={22} color={a.danger ? '#ef4444' : a.color || '#374151'} />
-            <Text style={[styles.rowText, a.danger && styles.dangerText]}>{a.label}</Text>
+      <Animated.View style={[styles.sheetContainer, { transform: [{ translateY }] }] } pointerEvents="box-none">
+        <Pressable style={styles.sheet} onPress={() => { /* swallow touches inside sheet so backdrop doesn't close */ }}>
+          {title ? <Text style={styles.title}>{title}</Text> : null}
+          {actions.map((a) => (
+            <TouchableOpacity key={a.key} style={styles.row} onPress={a.onPress}>
+              <Icon name={a.icon} size={22} color={a.danger ? '#ef4444' : a.color || '#111827'} />
+              <Text style={[styles.rowText, a.danger && styles.dangerText]}>{a.label}</Text>
+            </TouchableOpacity>
+          ))}
+          <TouchableOpacity style={[styles.row, styles.cancel]} onPress={onClose}>
+            <Icon name="close" size={22} color="#111827" />
+            <Text style={styles.rowText}>Cancel</Text>
           </TouchableOpacity>
-        ))}
-        <TouchableOpacity style={[styles.row, styles.cancel]} onPress={onClose}>
-          <Icon name="close" size={22} color="#374151" />
-          <Text style={styles.rowText}>Cancel</Text>
-        </TouchableOpacity>
+        </Pressable>
       </Animated.View>
     </Modal>
   );
@@ -74,20 +76,32 @@ const styles = StyleSheet.create({
     bottom: 0,
     backgroundColor: 'rgba(0,0,0,0.3)'
   },
+  sheetContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
   sheet: {
     position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#111827',
+    backgroundColor: '#FFFFFF',
     paddingTop: 12,
     paddingBottom: 8,
     paddingHorizontal: 16,
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
+    // subtle shadow for elevation on Android/iOS
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: -2 },
+    elevation: 6,
   },
   title: {
-    color: '#E5E7EB',
+    color: '#111827',
     fontWeight: '600',
     fontSize: 16,
     marginBottom: 8,
@@ -96,10 +110,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
-    borderBottomColor: 'rgba(255,255,255,0.06)',
+    borderBottomColor: 'rgba(0,0,0,0.06)',
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  rowText: { color: '#E5E7EB', fontSize: 15, marginLeft: 12 },
+  rowText: { color: '#111827', fontSize: 15, marginLeft: 12 },
   dangerText: { color: '#ef4444' },
   cancel: { borderBottomWidth: 0 },
 });

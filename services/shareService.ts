@@ -1,34 +1,51 @@
-import firestore from '@react-native-firebase/firestore';
+import {
+  getFirestore,
+  collection,
+  collectionGroup,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
+  onSnapshot,
+  serverTimestamp,
+} from '@react-native-firebase/firestore';
+
+const db = getFirestore();
 
 export type SharePermission = 'read' | 'write';
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
 
 // Path helpers
-const fileDoc = (fileId: string) => firestore().collection('files').doc(fileId);
-const sharesCol = (fileId: string) => fileDoc(fileId).collection('shares');
+const fileDoc = (fileId: string) => doc(collection(db, 'files'), fileId);
+const sharesCol = (fileId: string) => collection(db, 'files', fileId, 'shares');
 
 export async function shareFileByEmail(fileId: string, ownerUid: string, email: string, permission: SharePermission, ownerEmail?: string) {
   const em = normalizeEmail(email);
-  const ref = sharesCol(fileId).doc(em);
-  await ref.set({
+  const ref = doc(sharesCol(fileId), em);
+  await setDoc(ref as any, {
     email: em,
     permission,
     owner_id: ownerUid,
     owner_email: ownerEmail ? normalizeEmail(ownerEmail) : undefined,
-    created_at: firestore.FieldValue.serverTimestamp(),
-    updated_at: firestore.FieldValue.serverTimestamp(),
-  }, { merge: true });
+    created_at: serverTimestamp(),
+    updated_at: serverTimestamp(),
+  }, { merge: true } as any);
 }
 
 export async function updateSharePermission(fileId: string, email: string, permission: SharePermission) {
   const em = normalizeEmail(email);
-  await sharesCol(fileId).doc(em).update({ permission, updated_at: firestore.FieldValue.serverTimestamp() });
+  const ref = doc(sharesCol(fileId), em);
+  await updateDoc(ref as any, { permission, updated_at: serverTimestamp() } as any);
 }
 
 export async function revokeShare(fileId: string, email: string) {
   const em = normalizeEmail(email);
-  await sharesCol(fileId).doc(em).delete();
+  const ref = doc(sharesCol(fileId), em);
+  await deleteDoc(ref as any);
 }
 
 export type SharedFileRecord = {
@@ -48,50 +65,48 @@ export type SharedFileRecord = {
 // Uses collectionGroup on `shares`. For each share doc we fetch its parent `files/{id}` document.
 export function subscribeSharedWithMe(email: string, onChange: (rows: SharedFileRecord[]) => void, onError?: (e:any) => void) {
   const em = normalizeEmail(email);
-  const sub = firestore()
-    .collectionGroup('shares')
-    .where('email', '==', em)
-    .onSnapshot(async (snap) => {
-      try {
-        const tasks = snap.docs.map(async (shareDoc) => {
-          const permission: SharePermission = (shareDoc.data()?.permission as SharePermission) || 'read';
-          const ownerEmail: string | undefined = (shareDoc.data()?.owner_email as string | undefined) || undefined;
-          const fileRef = shareDoc.ref.parent.parent; // files/{fileId}
-          if (!fileRef) return null;
-          const fileSnap = await fileRef.get();
-          if (!fileSnap.exists) return null;
-          const d: any = fileSnap.data() || {};
-          return {
-            id: fileSnap.id,
-            name: d.name || 'Untitled',
-            path: d.path,
-            kind: d.kind,
-            contentType: d.contentType,
-            size: d.size,
-            owner_id: d.owner_id,
-            ownerEmail,
-            permission,
-            password_protected: d.password_protected === true,
-          } as SharedFileRecord;
-        });
-        const rows = (await Promise.all(tasks)).filter(Boolean) as SharedFileRecord[];
-        onChange(rows);
-      } catch (e) {
-        onError && onError(e);
-      }
-    }, (err) => onError && onError(err));
+  const q = query(collectionGroup(db, 'shares'), where('email', '==', em));
+  const sub = onSnapshot(q as any, async (snap: any) => {
+    try {
+      const tasks = snap.docs.map(async (shareDoc: any) => {
+        const permission: SharePermission = (shareDoc.data()?.permission as SharePermission) || 'read';
+        const ownerEmail: string | undefined = (shareDoc.data()?.owner_email as string | undefined) || undefined;
+        const fileRef = shareDoc.ref.parent.parent; // files/{fileId}
+        if (!fileRef) return null;
+        const fileSnap = await getDoc(fileRef as any);
+        if (!fileSnap.exists) return null;
+        const d: any = fileSnap.data() || {};
+        return {
+          id: fileSnap.id,
+          name: d.name || 'Untitled',
+          path: d.path,
+          kind: d.kind,
+          contentType: d.contentType,
+          size: d.size,
+          owner_id: d.owner_id,
+          ownerEmail,
+          permission,
+          password_protected: d.password_protected === true,
+        } as SharedFileRecord;
+      });
+      const rows = (await Promise.all(tasks)).filter(Boolean) as SharedFileRecord[];
+      onChange(rows);
+    } catch (e) {
+      onError && onError(e);
+    }
+  }, (err: any) => onError && onError(err));
   return sub;
 }
 
 export function subscribeSharesForFile(fileId: string, onChange: (rows: {email: string; permission: SharePermission}[]) => void, onError?: (e:any)=>void) {
-  const sub = sharesCol(fileId).onSnapshot((snap) => {
+  const sub = onSnapshot(sharesCol(fileId) as any, (snap: any) => {
     const rows: {email: string; permission: SharePermission}[] = [];
-    snap.forEach((doc) => {
-      const d: any = doc.data() || {};
-      rows.push({ email: d.email || doc.id, permission: (d.permission as SharePermission) || 'read' });
+    snap.forEach((docSnap: any) => {
+      const d: any = docSnap.data() || {};
+      rows.push({ email: d.email || docSnap.id, permission: (d.permission as SharePermission) || 'read' });
     });
     onChange(rows);
-  }, (err) => onError && onError(err));
+  }, (err: any) => onError && onError(err));
   return sub;
 }
 

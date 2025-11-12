@@ -22,9 +22,9 @@ export default function BinScreen({ navigation }: Props) {
       .where('trashed', '==', true)
       .onSnapshot((snap) => {
         const rows: any[] = [];
-        snap.forEach((doc) => {
-          const d: any = doc.data() || {};
-          rows.push({ id: doc.id, name: d.name || 'Untitled', kind: d.kind, contentType: d.contentType, path: d.path, size: d.size });
+        snap.forEach((docSnap) => {
+          const d: any = docSnap.data() || {};
+          rows.push({ id: docSnap.id, name: d.name || 'Untitled', kind: d.kind, contentType: d.contentType, path: d.path, size: d.size });
         });
         setItems(rows);
         setLoading(false);

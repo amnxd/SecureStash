@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
 // Enable screens for better performance
 enableScreens();
+ 
 
 // Import screens
 import SignupScreen from "./Screens/SignupScreen";

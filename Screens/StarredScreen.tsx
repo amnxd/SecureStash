@@ -40,10 +40,10 @@ const StarredScreen: React.FC<StarredScreenProps> = ({ navigation }) => {
       .onSnapshot(
         (snap) => {
           const rows: FileRecord[] = [];
-          snap.forEach((doc) => {
-            const d = (doc.data() || {}) as any;
+          snap.forEach((docSnap) => {
+            const d = (docSnap.data() || {}) as any;
             rows.push({
-              id: doc.id,
+              id: docSnap.id,
               name: d.name || 'Untitled',
               kind: d.kind,
               path: d.path,

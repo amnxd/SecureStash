@@ -1,6 +1,12 @@
 import 'react-native-get-random-values';
 import storage from '@react-native-firebase/storage';
-import firestore from '@react-native-firebase/firestore';
+import {
+  getFirestore,
+  collection,
+  doc,
+  setDoc,
+  serverTimestamp,
+} from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import { launchImageLibrary, launchCamera, Asset } from 'react-native-image-picker';
 import { PermissionsAndroid, Platform } from 'react-native';
@@ -162,8 +168,10 @@ async function uploadAssetToStorage(userId: string, asset: Asset, defaultExt: st
     }
   }
 
-  const now = firestore.FieldValue.serverTimestamp();
-  await firestore().collection(FILES).doc(fileId).set({
+  const db = getFirestore();
+  const now = serverTimestamp();
+  const fileRef = doc(collection(db, FILES), fileId);
+  await setDoc(fileRef as any, {
     owner_id: userId,
     name: originalName,
     path: storagePath,
