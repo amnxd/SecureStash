@@ -1,4 +1,4 @@
 // attach jest-dom matchers
-require('@testing-library/jest-dom')
-// next-router-mock setup; keep CommonJS so Jest can mock
+import '@testing-library/jest-dom/extend-expect'
+// next-router-mock setup; use CommonJS require so Jest can mock
 module.exports = () => {}

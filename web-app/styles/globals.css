@@ -37,11 +37,6 @@ body{font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Rob
 button { background: transparent; border: 1px solid #e5e7eb; padding: 6px 8px; border-radius: 6px; cursor: pointer }
 button:disabled { opacity: 0.5; cursor: not-allowed }
 
-/* Icon sizing in action buttons */
-.file-actions button svg { width: 18px; height: 18px; display: block; }
-.file-actions button { padding: 6px; border-radius: 6px; border: none; background: transparent }
-.file-actions button[aria-label] { display: inline-flex; align-items: center; justify-content: center }
-
 /* File name overflow handling */
 .file-main strong { display: inline-block; max-width: 420px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
 .file-row:hover { background: #fbfdff }
