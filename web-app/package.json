@@ -1,0 +1,35 @@
+{
+  "name": "securestash-web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "test": "jest",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.0.0",
+    "firebase": "^9.0.0",
+    "next": "13.4.10",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "swr": "^2.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.4.2",
+    "@types/react": "^18.2.21",
+    "@types/react-dom": "^18.2.7",
+    "eslint": "8.47.0",
+    "eslint-config-next": "^13.4.10",
+    "typescript": "^5.4.2",
+    "jest": "^29.0.0",
+    "ts-jest": "^29.0.0",
+    "@types/jest": "^29.5.3",
+    "@testing-library/react": "^14.0.0",
+    "@testing-library/jest-dom": "^6.0.0",
+    "@heroicons/react": "^2.0.20",
+    "jest-environment-jsdom": "^29.0.0"
+  }
+}
