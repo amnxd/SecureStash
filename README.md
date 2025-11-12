@@ -264,12 +264,6 @@ If you encounter any issues:
 4. Check that all environment variables are set properly
 
 For additional help, please open an issue in the repository.
-
-## 🌐 Live demo
-
-The web frontend is deployed at: https://secure-stash-web.vercel.app/
-
-If you want to run it locally, set the env vars in `web-app/.env.local` (or in your hosting provider) for Supabase and Firebase as appropriate.
 =======
 This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
 
